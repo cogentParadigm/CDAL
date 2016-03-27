@@ -1,4 +1,4 @@
-# CDAL
+# CoreData Abstraction Layer
 
 [![CI Status](http://img.shields.io/travis/Ali Gangji/CDAL.svg?style=flat)](https://travis-ci.org/Ali Gangji/CDAL)
 [![Version](https://img.shields.io/cocoapods/v/CDAL.svg?style=flat)](http://cocoapods.org/pods/CDAL)
