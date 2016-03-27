@@ -1,0 +1,13 @@
+source 'https://github.com/CocoaPods/Specs.git'
+use_frameworks!
+
+target 'CDAL_Example', :exclusive => true do
+  pod 'CDAL', :path => '../'
+end
+
+target 'CDAL_Tests', :exclusive => true do
+  pod 'CDAL', :path => '../'
+
+  pod 'Quick', '~> 0.8'
+  pod 'Nimble', '~> 3.0'
+end
