@@ -1,6 +1,0 @@
-framework module Pods_CDAL_Tests {
-  umbrella header "Pods-CDAL_Tests-umbrella.h"
-
-  export *
-  module * { export * }
-}

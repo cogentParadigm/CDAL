@@ -1,6 +1,0 @@
-framework module CDAL {
-  umbrella header "CDAL-umbrella.h"
-
-  export *
-  module * { export * }
-}
