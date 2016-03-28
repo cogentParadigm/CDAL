@@ -7,15 +7,21 @@
 //
 
 import UIKit
+import CDAL
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    
+    let cd = CDALFactory().create()
 
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        // Override point for customization after application launch.
+        print("start setup")
+        cd.setup() {
+            print("setup complete")
+        }
         return true
     }
 

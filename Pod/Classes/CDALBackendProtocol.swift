@@ -6,12 +6,11 @@
 //
 //
 
-protocol CDALBackendProtocol {
+public protocol CDALBackendProtocol {
     func isAvailable() -> Bool
     func storeExists() -> Bool
-    func setConfiguration(configuration:CDALConfiguration)
 }
 
-protocol CDALCloudEnabledBackendProtocol: CDALBackendProtocol {
-    func authenticate()
+public protocol CDALCloudEnabledBackendProtocol: CDALBackendProtocol {
+    func authenticate(completion:((Bool) -> Void)?)
 }

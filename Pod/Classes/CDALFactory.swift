@@ -6,10 +6,13 @@
 //
 //
 
-class CDALFactory: NSObject {
-    func create() {
+public class CDALFactory: NSObject {
+    public func create() -> CDALManager {
         let local = CDALLocalBackend(name: "MarkMyWorld")
         let cloud = CDALCloudBackend(name: "MarkMyWorld_ICLOUD")
-        let configuration = CDALConfiguration(localBackend: local, cloudBackend: cloud)
+        let CDAL = CDALManager()
+        CDAL.setLocalBackend(local)
+        CDAL.setCloudBackend(cloud)
+        return CDAL
     }
 }

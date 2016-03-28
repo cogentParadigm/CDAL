@@ -6,7 +6,7 @@
 //
 //
 
-class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
+public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
     
     private struct Constants {
         static let appID = NSBundle.mainBundle().infoDictionary?["CFBundleIdentifier"] as? NSString
@@ -26,7 +26,7 @@ class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
         super.init()
     }
     
-    func isAvailable() -> Bool {
+    public func isAvailable() -> Bool {
         if let _ = NSFileManager.defaultManager().ubiquityIdentityToken {
             return true
         }
@@ -34,7 +34,7 @@ class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
             return false
         }
     }
-    func storeExists() -> Bool {
+    public func storeExists() -> Bool {
         // if iCloud container is not available just return NO
         if (!isAvailable()) {
             return false
@@ -51,15 +51,16 @@ class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
         return icloudFileExists
     }
     
-    func authenticate() {
+    public func authenticate(completion:((Bool) -> Void)?) {
         if ubiquitousTokenHasChanged() {
-            
+            completion?(true)
         } else {
-            
+            completion?(false)
         }
+        storeToken()
     }
     
-    func setConfiguration(configuration: CDALConfiguration) {
+    private func storeToken() {
         if let token:protocol<NSCoding, NSCopying, NSObjectProtocol>? = NSFileManager.defaultManager().ubiquityIdentityToken {
             // Write the ubquity identity token to NSUserDefaults if it exists.
             // Otherwise, remove the key.

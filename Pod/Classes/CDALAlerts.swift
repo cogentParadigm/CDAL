@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CDALAlerts: NSObject {
+public class CDALAlerts: NSObject {
     
     func cloudPreference(completion:((Int)->Void)?) {
         AlertBuilder(title: "Choose Storage Option", message: "Should documents be stored in iCloud or on just this device?")

@@ -6,7 +6,7 @@
 //
 //
 
-class CDALLocalBackend: NSObject, CDALBackendProtocol {
+public class CDALLocalBackend: NSObject, CDALBackendProtocol {
     
     let name:String
     
@@ -15,11 +15,11 @@ class CDALLocalBackend: NSObject, CDALBackendProtocol {
         super.init()
     }
     
-    func isAvailable() -> Bool {
+    public func isAvailable() -> Bool {
         return true
     }
     
-    func storeExists() -> Bool {
+    public func storeExists() -> Bool {
         var isDir: ObjCBool = false
         let url = storeURL()
         if let path = url.path {    
