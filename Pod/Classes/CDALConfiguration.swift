@@ -23,6 +23,8 @@ public protocol CDALConfigurationProtocol {
     func shouldMigrateData(should:Bool)
     
     func update()
+    
+    func getModelName() -> String
 }
 
 public class CDALConfiguration: NSObject, CDALConfigurationProtocol {
@@ -39,6 +41,12 @@ public class CDALConfiguration: NSObject, CDALConfigurationProtocol {
     var _shouldUseCloud = false
     var _cloudPreferenceSelected = false
     var _shouldMigrateData = true
+    let modelName:String
+    
+    init(modelName:String) {
+        self.modelName = modelName
+        super.init()
+    }
     
     public func isFirstInstall() -> Bool {
         return _firstInstall
@@ -84,6 +92,10 @@ public class CDALConfiguration: NSObject, CDALConfigurationProtocol {
     public func update() {
         setVersion()
         checkCloudPreference()
+    }
+    
+    public func getModelName() -> String {
+        return modelName
     }
     
 

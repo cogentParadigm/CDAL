@@ -6,6 +6,8 @@
 //
 //
 
+import CoreData
+
 public class CDALLocalBackend: NSObject, CDALBackendProtocol {
     
     let name:String
@@ -15,31 +17,8 @@ public class CDALLocalBackend: NSObject, CDALBackendProtocol {
         super.init()
     }
     
-    public func isAvailable() -> Bool {
-        return true
+    public func getStoreName() -> String {
+        return name
     }
-    
-    public func storeExists() -> Bool {
-        var isDir: ObjCBool = false
-        let url = storeURL()
-        if let path = url.path {    
-            let fileExists: Bool = NSFileManager.defaultManager().fileExistsAtPath(path, isDirectory: &isDir)
-            return fileExists
-        } else {
-            return false
-        }
-    }
-    
-    func setConfiguration(configuration: CDALConfiguration) {
-        //nothing to do
-    }
-    
-    private func storeURL() -> NSURL {
-        return applicationDocumentsDirectory.URLByAppendingPathComponent(name).URLByAppendingPathExtension("sqlite")
-    }
-    
-    lazy var applicationDocumentsDirectory: NSURL = {
-        let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
-        return urls[urls.count-1] as NSURL
-    }()
+
 }

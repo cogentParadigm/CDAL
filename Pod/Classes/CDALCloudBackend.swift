@@ -6,6 +6,8 @@
 //
 //
 
+import CoreData
+
 public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
     
     private struct Constants {
@@ -18,6 +20,7 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
     var ubiquityContainerID: NSString? = Constants.iCloudContainerID
     var hasCheckedCloud = false
     var cloudFileExists = false
+    var rebuildFromCloud = false
     
     let name:String
     
@@ -51,6 +54,10 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
         return icloudFileExists
     }
     
+    public func getStoreName() -> String {
+        return name
+    }
+    
     public func authenticate(completion:((Bool) -> Void)?) {
         if ubiquitousTokenHasChanged() {
             completion?(true)
@@ -58,6 +65,28 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
             completion?(false)
         }
         storeToken()
+    }
+    
+
+    public func storeOptions() -> NSDictionary {
+        
+        var options: NSDictionary
+        
+        if (rebuildFromCloud) {
+            options = [NSPersistentStoreUbiquitousContentNameKey:name,
+                       NSPersistentStoreRebuildFromUbiquitousContentOption:true,
+                       NSMigratePersistentStoresAutomaticallyOption:true,
+                       NSInferMappingModelAutomaticallyOption:true,
+                       NSSQLitePragmasOption:["journal_mode" : "DELETE" ]]
+            rebuildFromCloud = false
+        } else {
+            options = [NSPersistentStoreUbiquitousContentNameKey:name,
+                       NSMigratePersistentStoresAutomaticallyOption:true,
+                       NSInferMappingModelAutomaticallyOption:true,
+                       NSSQLitePragmasOption:["journal_mode" : "DELETE" ]]
+        }
+        
+        return options
     }
     
     private func storeToken() {
