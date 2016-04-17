@@ -89,6 +89,23 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
         return options
     }
     
+    public func delete() {
+        var result:Bool = false
+        do {
+            try NSPersistentStoreCoordinator.removeUbiquitousContentAndPersistentStoreAtURL(storeURL(),
+                                                                                            options:(storeOptions() as! [NSObject : AnyObject]))
+            result = true
+        } catch  {
+            result = false
+        }
+        
+        if (!result) {
+            return
+        } else {
+            deleteStoreFile(documentsDirectory().URLByAppendingPathComponent("CoreDataUbiquitySupport"))
+        }
+    }
+    
     private func storeToken() {
         if let token:protocol<NSCoding, NSCopying, NSObjectProtocol>? = NSFileManager.defaultManager().ubiquityIdentityToken {
             // Write the ubquity identity token to NSUserDefaults if it exists.

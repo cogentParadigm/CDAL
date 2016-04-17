@@ -15,12 +15,18 @@ public protocol CDALConfigurationProtocol {
     func shouldUseCloud() -> Bool
     func isCloudPreferenceSelected() -> Bool
     func shouldMigrateData() -> Bool
+    func hasJustMigrated() -> Bool
+    func isStoreOpening() -> Bool
+    func isStoreOpen() -> Bool
     
     func setCloudAvailable(available:Bool)
     func setCloudEnabled(enabled:Bool)
     func shouldUseCloud(should:Bool)
     func clearCloudPreference()
     func shouldMigrateData(should:Bool)
+    func hasJustMigrated(has:Bool)
+    func isStoreOpening(open:Bool)
+    func isStoreOpen(open:Bool)
     
     func update()
     
@@ -41,7 +47,12 @@ public class CDALConfiguration: NSObject, CDALConfigurationProtocol {
     var _shouldUseCloud = false
     var _cloudPreferenceSelected = false
     var _shouldMigrateData = true
+    var _hasJustMigrated = false
+    var _isStoreOpen = false
+    var _isStoreOpening = false
     let modelName:String
+    
+    let uuids = [String]()
     
     init(modelName:String) {
         self.modelName = modelName
@@ -81,8 +92,26 @@ public class CDALConfiguration: NSObject, CDALConfigurationProtocol {
         NSUserDefaults.standardUserDefaults().setValue("YES", forKey:Constants.iCloudPreferenceSelected)
         NSUserDefaults.standardUserDefaults().synchronize()
     }
+    public func hasJustMigrated() -> Bool {
+        return _hasJustMigrated
+    }
     public func shouldMigrateData(should: Bool) {
         _shouldMigrateData = should
+    }
+    public func hasJustMigrated(has: Bool) {
+        _hasJustMigrated = has
+    }
+    public func isStoreOpen() -> Bool {
+        return _isStoreOpen
+    }
+    public func isStoreOpening() -> Bool {
+        return _isStoreOpening
+    }
+    public func isStoreOpen(open: Bool) {
+        _isStoreOpen = open
+    }
+    public func isStoreOpening(open: Bool) {
+        _isStoreOpening = open
     }
     public func clearCloudPreference() {
         shouldUseCloud(false)

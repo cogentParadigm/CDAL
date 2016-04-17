@@ -62,4 +62,22 @@ public class CDALAlerts: NSObject {
         }
         popup.show()
     }
+    
+    func cloudMerge(completion:((Int)->Void)?) {
+        let title = "iCloud file exists"
+        let message = "Do you want to merge the data on this device with the existing iCloud data?"
+        let option1 = "Yes"
+        let option2 = "No"
+        let popup = AlertBuilder(title: title, message: message)
+        popup.addAction(option1) { (alert:UIAlertAction!) in
+            //merge
+            completion?(1)
+        }
+        popup.addAction(option2) { (alert:UIAlertAction!) in
+            //no merge
+            completion?(2)
+        }
+        popup.show()
+        
+    }
 }

@@ -15,6 +15,8 @@ public protocol CDALBackendProtocol {
     func storeURL() -> NSURL
     func storeOptions() -> NSDictionary
     func addToCoordinator(coordinator:NSPersistentStoreCoordinator) throws -> NSPersistentStore
+    func migrateStore(source:NSPersistentStore, coordinator:NSPersistentStoreCoordinator) throws -> NSPersistentStore
+    func delete()
 }
 
 public protocol CDALCloudEnabledBackendProtocol: CDALBackendProtocol {
@@ -51,6 +53,10 @@ extension CDALBackendProtocol {
         let store: NSPersistentStore = try coordinator.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: storeURL(), options: (storeOptions() as! [NSObject : AnyObject]))
         return store
     }
+    func migrateStore(source:NSPersistentStore, coordinator: NSPersistentStoreCoordinator) throws -> NSPersistentStore {
+        let store: NSPersistentStore = try coordinator.migratePersistentStore(source, toURL:storeURL(), options:(storeOptions() as! [NSObject : AnyObject]), withType:NSSQLiteStoreType)
+        return store
+    }
     func saveBackup(coordinator:NSPersistentStoreCoordinator) -> Bool {
         do {
             let source: NSPersistentStore = try addToCoordinator(coordinator)
@@ -80,5 +86,34 @@ extension CDALBackendProtocol {
         let fileName: NSString = getStoreName() + "_Backup_" + dateString
         
         return documentsDirectory().URLByAppendingPathComponent(fileName as String).URLByAppendingPathExtension("sqlite")
+    }
+    func delete() {
+        deleteStoreFile(storeURL())
+    }
+    func deleteStoreFile(fileURL:NSURL) {
+        if let path = fileURL.path {
+            if (!NSFileManager.defaultManager().fileExistsAtPath(path)) {
+                return
+            }
+        }
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            let fileCoordinator:NSFileCoordinator = NSFileCoordinator()
+            var error: NSError? = nil
+            fileCoordinator.coordinateWritingItemAtURL(fileURL, options: NSFileCoordinatorWritingOptions.ForDeleting, error: &error, byAccessor: {writingURL in
+                let fileManager:NSFileManager = NSFileManager()
+                var er:NSError? = nil
+                let res:Bool
+                do {
+                    try fileManager.removeItemAtURL(writingURL)
+                    res = true
+                } catch var error as NSError {
+                    er = error
+                    res = false
+                } catch {
+                    fatalError()
+                }
+            })
+            
+        })
     }
 }
