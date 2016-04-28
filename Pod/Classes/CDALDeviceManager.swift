@@ -6,7 +6,7 @@
 //
 //
 
-class CDALDeviceManager: NSObject {
+public class CDALDeviceManager: NSObject {
     private struct Constants {
         static let appID = NSBundle.mainBundle().infoDictionary?["CFBundleIdentifier"] as? NSString
         static let iCloudUUIDKey = ".\(Constants.appID).iCloudUUID"
@@ -27,11 +27,11 @@ class CDALDeviceManager: NSObject {
         }
     }
     
-    public func getDeviceID() -> String {
+    func getDeviceID() -> String {
         return NSUserDefaults.standardUserDefaults().objectForKey(Constants.iCloudUUIDKey) as! String
     }
     
-    public func setup() {
+    func setup() {
         uuids.removeAll()
         deviceList = CDALDeviceList(url: deviceListURL(), queue: NSOperationQueue())
         NSFileCoordinator.addFilePresenter(deviceList!)
@@ -39,13 +39,13 @@ class CDALDeviceManager: NSObject {
         query?.searchScopes = [NSMetadataQueryUbiquitousDataScope]
         query?.predicate = NSPredicate(format: "%K LIKE %@", argumentArray: [NSMetadataItemFSNameKey, deviceListName])
         let notificationCenter = NSNotificationCenter.defaultCenter()
-        notificationCenter.addObserver(self, selector: "deviceListChanged", name: NSMetadataQueryDidUpdateNotification, object: query!)
+        notificationCenter.addObserver(self, selector: #selector(deviceListChanged(_:)), name: NSMetadataQueryDidUpdateNotification, object: query!)
         dispatch_async(dispatch_get_main_queue()) {
             self.query?.startQuery()
         }
     }
     
-    public func teardown() {
+    func teardown() {
         if deviceList != nil {
             NSFileCoordinator.removeFilePresenter(deviceList!)
             deviceList = nil
@@ -58,7 +58,7 @@ class CDALDeviceManager: NSObject {
         }
     }
     
-    public func deviceListChanged(notification:NSNotification) {
+    func deviceListChanged(notification:NSNotification) {
         dispatch_async(backgroundQueue) {
             self.query?.disableUpdates()
             self.refreshDeviceList(false) { deviceListExisted, currentDevicePresent in
@@ -67,7 +67,7 @@ class CDALDeviceManager: NSObject {
         }
     }
     
-    public func refreshDeviceList(canAddCurrentDevice:Bool, completion:(deviceListExisted:Bool, currentDevicePresent:Bool) -> Void) {
+    func refreshDeviceList(canAddCurrentDevice:Bool, completion:(deviceListExisted:Bool, currentDevicePresent:Bool) -> Void) {
         uuids.removeAll()
         let uuid = NSUserDefaults.standardUserDefaults().stringForKey(Constants.iCloudUUIDKey)!
         
@@ -77,7 +77,7 @@ class CDALDeviceManager: NSObject {
             var deviceListExisted = false
             var currentDevicePresent = false
             coordinator.coordinateReadingItemAtURL(self.deviceListURL(), options: .WithoutChanges, error: &err) { url in
-                var dict = NSDictionary(contentsOfURL: url)
+                let dict = NSDictionary(contentsOfURL: url)
                 if let devices = dict?.objectForKey("DeviceUUIDs") as? [String] {
                     self.uuids = devices
                     if devices.count > 0 {

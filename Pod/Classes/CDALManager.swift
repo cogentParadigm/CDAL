@@ -212,7 +212,7 @@ public class CDALManager: NSObject {
         configuration.isStoreOpening(true)
         registerForStoreChanges(coordinator)
         do {
-            let store = try backend().addToCoordinator(coordinator)
+            try backend().addToCoordinator(coordinator)
             configuration.isStoreOpening(false)
             configuration.isStoreOpen(true)
             completion?()
@@ -336,9 +336,9 @@ public class CDALManager: NSObject {
     
     private func registerForStoreChanges(storeCoordinator: NSPersistentStoreCoordinator) {
         let nc = NSNotificationCenter.defaultCenter()
-        nc.addObserver(self, selector: "storesWillChange:", name: NSPersistentStoreCoordinatorStoresWillChangeNotification, object: storeCoordinator)
-        nc.addObserver(self, selector: "storesDidChange:", name: NSPersistentStoreCoordinatorStoresDidChangeNotification, object: storeCoordinator)
-        nc.addObserver(self, selector: "storesDidImport:", name: NSPersistentStoreDidImportUbiquitousContentChangesNotification, object: storeCoordinator)
+        nc.addObserver(self, selector: #selector(storesWillChange(_:)), name: NSPersistentStoreCoordinatorStoresWillChangeNotification, object: storeCoordinator)
+        nc.addObserver(self, selector: #selector(storesDidChange(_:)), name: NSPersistentStoreCoordinatorStoresDidChangeNotification, object: storeCoordinator)
+        nc.addObserver(self, selector: #selector(storesDidImport(_:)), name: NSPersistentStoreDidImportUbiquitousContentChangesNotification, object: storeCoordinator)
     }
     
     private func deregisterForStoreChanges() {

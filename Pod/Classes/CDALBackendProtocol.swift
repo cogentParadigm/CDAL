@@ -23,7 +23,7 @@ public protocol CDALCloudEnabledBackendProtocol: CDALBackendProtocol {
     func authenticate(completion:((Bool) -> Void)?)
 }
 
-extension CDALBackendProtocol {
+public extension CDALBackendProtocol {
     func isAvailable() -> Bool {
         return true
     }
@@ -50,11 +50,11 @@ extension CDALBackendProtocol {
         }
     }
     func addToCoordinator(coordinator: NSPersistentStoreCoordinator) throws -> NSPersistentStore {
-        let store: NSPersistentStore = try coordinator.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: storeURL(), options: (storeOptions() as! [NSObject : AnyObject]))
+        let store: NSPersistentStore = try coordinator.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: storeURL(), options: (storeOptions() as [NSObject : AnyObject]))
         return store
     }
     func migrateStore(source:NSPersistentStore, coordinator: NSPersistentStoreCoordinator) throws -> NSPersistentStore {
-        let store: NSPersistentStore = try coordinator.migratePersistentStore(source, toURL:storeURL(), options:(storeOptions() as! [NSObject : AnyObject]), withType:NSSQLiteStoreType)
+        let store: NSPersistentStore = try coordinator.migratePersistentStore(source, toURL:storeURL(), options:(storeOptions() as [NSObject : AnyObject]), withType:NSSQLiteStoreType)
         return store
     }
     func saveBackup(coordinator:NSPersistentStoreCoordinator) -> Bool {
@@ -62,7 +62,7 @@ extension CDALBackendProtocol {
             let source: NSPersistentStore = try addToCoordinator(coordinator)
             let destination: NSPersistentStore?
             do {
-                destination = try coordinator.migratePersistentStore(source, toURL:backupStoreURL(), options:(storeOptions() as! [NSObject : AnyObject]), withType:NSSQLiteStoreType)
+                destination = try coordinator.migratePersistentStore(source, toURL:backupStoreURL(), options:(storeOptions() as [NSObject : AnyObject]), withType:NSSQLiteStoreType)
             } catch {
                 destination = nil
             }
@@ -101,14 +101,8 @@ extension CDALBackendProtocol {
             var error: NSError? = nil
             fileCoordinator.coordinateWritingItemAtURL(fileURL, options: NSFileCoordinatorWritingOptions.ForDeleting, error: &error, byAccessor: {writingURL in
                 let fileManager:NSFileManager = NSFileManager()
-                var er:NSError? = nil
-                let res:Bool
                 do {
                     try fileManager.removeItemAtURL(writingURL)
-                    res = true
-                } catch var error as NSError {
-                    er = error
-                    res = false
                 } catch {
                     fatalError()
                 }

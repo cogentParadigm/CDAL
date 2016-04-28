@@ -44,8 +44,7 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
         }
         
         if let path = containerURL()?.path {
-            var isDir: Bool = false
-            var fileExists: Bool = NSFileManager.defaultManager().fileExistsAtPath(path)
+            var _: Bool = NSFileManager.defaultManager().fileExistsAtPath(path)
         }
 
         // This may block for some time if a _query has not returned results yet
@@ -93,7 +92,7 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
         var result:Bool = false
         do {
             try NSPersistentStoreCoordinator.removeUbiquitousContentAndPersistentStoreAtURL(storeURL(),
-                                                                                            options:(storeOptions() as! [NSObject : AnyObject]))
+                                                                                            options:(storeOptions() as [NSObject : AnyObject]))
             result = true
         } catch  {
             result = false
@@ -143,7 +142,7 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
             NSRunLoop.currentRunLoop().runMode(NSRunLoopCommonModes, beforeDate: date)
             // Double the time box, for next try, max out at 1000ms.
             //ti = MIN(1.0, ti * 2);
-            count++
+            count = count + 1
             if (count>10) {
                 //given up waiting
                 hasCheckedCloud = true
