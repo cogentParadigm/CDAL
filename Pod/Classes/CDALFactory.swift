@@ -7,9 +7,9 @@
 //
 
 public class CDALFactory: NSObject {
-    public func create(modelName:String) -> CDALManager {
-        let local = CDALLocalBackend(name: "MarkMyWorld")
-        let cloud = CDALCloudBackend(name: "MarkMyWorld_ICLOUD")
+    public func create(modelName:String, localStoreName:String, cloudStoreName:String) -> CDALManager {
+        let local = CDALLocalBackend(name: localStoreName)
+        let cloud = CDALCloudBackend(name: cloudStoreName)
         let CDAL = CDALManager(modelName:modelName)
         CDAL.setLocalBackend(local)
         CDAL.setCloudBackend(cloud)
