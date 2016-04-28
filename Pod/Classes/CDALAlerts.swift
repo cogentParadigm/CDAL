@@ -10,7 +10,7 @@ import UIKit
 
 public class CDALAlerts: NSObject {
     
-    func cloudPreference(completion:((Int)->Void)?) {
+    public func cloudPreference(completion:((Int)->Void)?) {
         AlertBuilder(title: "Choose Storage Option", message: "Should documents be stored in iCloud or on just this device?")
         .addAction("Local only") { _ in
             completion?(1)
@@ -21,7 +21,7 @@ public class CDALAlerts: NSObject {
         .show()
     }
 
-    func cloudDisabled(completion:((Int)->Void)?) {
+    public func cloudDisabled(completion:((Int)->Void)?) {
         let title: String = "You're not using iCloud"
         var message: String = ""
         let option1: String = "Keep using iCloud"
@@ -53,7 +53,7 @@ public class CDALAlerts: NSObject {
         
     }
     
-    func cloudSignout(completion:(() -> Void)?) {
+    public func cloudSignout(completion:(() -> Void)?) {
         let title = "iCloud Sign-Out"
         let message = "You have signed out of the iCloud account previously used to store documents. Sign back in to access those documents"
         let option = "OK"
@@ -63,7 +63,7 @@ public class CDALAlerts: NSObject {
         popup.show()
     }
     
-    func cloudMerge(completion:((Int)->Void)?) {
+    public func cloudMerge(completion:((Int)->Void)?) {
         let title = "iCloud file exists"
         let message = "Do you want to merge the data on this device with the existing iCloud data?"
         let option1 = "Yes"

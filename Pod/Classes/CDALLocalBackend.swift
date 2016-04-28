@@ -12,7 +12,7 @@ public class CDALLocalBackend: NSObject, CDALBackendProtocol {
     
     let name:String
     
-    init(name:String) {
+    public init(name:String) {
         self.name = name
         super.init()
     }

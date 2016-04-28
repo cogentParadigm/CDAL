@@ -22,7 +22,7 @@ public class CDALManager: NSObject {
     var local:CDALBackendProtocol?
     var cloud:CDALCloudEnabledBackendProtocol?
 
-    init(configuration:CDALConfigurationProtocol) {
+    public init(configuration:CDALConfigurationProtocol) {
         self.configuration = configuration
     }
     

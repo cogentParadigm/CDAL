@@ -11,7 +11,7 @@ class CDALDeviceList: NSObject, NSFilePresenter {
     var presentedItemURL: NSURL?
     var presentedItemOperationQueue: NSOperationQueue
     
-    init(url:NSURL, queue:NSOperationQueue) {
+    public init(url:NSURL, queue:NSOperationQueue) {
         presentedItemURL = url
         presentedItemOperationQueue = queue
         super.init()

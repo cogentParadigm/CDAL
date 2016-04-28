@@ -24,7 +24,7 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
     
     let name:String
     
-    init(name:String) {
+    public init(name:String) {
         self.name = name
         super.init()
     }

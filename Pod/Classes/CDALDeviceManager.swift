@@ -19,7 +19,7 @@ public class CDALDeviceManager: NSObject {
     
     let backgroundQueue = dispatch_queue_create("CDALDeviceManager.BackgroundQueue", nil)
     
-    override init() {
+    public override init() {
         super.init()
         if ((NSUserDefaults.standardUserDefaults().objectForKey(Constants.iCloudUUIDKey) as? String) == nil) {
             NSUserDefaults.standardUserDefaults().setObject(NSUUID().UUIDString, forKey: Constants.iCloudUUIDKey)
