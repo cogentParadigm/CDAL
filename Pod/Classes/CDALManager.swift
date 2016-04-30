@@ -46,6 +46,9 @@ public class CDALManager: NSObject {
         }
         return local!
     }
+    public func mainContext() -> NSManagedObjectContext {
+        return context
+    }
     
     //MARK: Initialization Sequence
     public func setup(completion:(() -> Void)?) {
