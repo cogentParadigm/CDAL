@@ -21,6 +21,8 @@ public class CDALDatabase: NSObject {
     }
     // MARK: - FETCH
     public func query<EntityType: NSManagedObject>(request:NSFetchRequest) -> [EntityType]? {
+        let entity = NSEntityDescription.entityForName("\(EntityType.self)".componentsSeparatedByString(".").last!, inManagedObjectContext: context)
+        request.entity = entity
         return (try? context.executeFetchRequest(request)) as? [EntityType]
     }
     
