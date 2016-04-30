@@ -38,7 +38,7 @@ public class CDALRepository<EntityType: NSManagedObject>: NSObject {
     /**
      * fetch records
      */
-    func query(request:NSFetchRequest) -> [EntityType]? {
+    public func query(request:NSFetchRequest) -> [EntityType]? {
         return db.query(request)
     }
 }
