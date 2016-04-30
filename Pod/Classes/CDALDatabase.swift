@@ -15,14 +15,21 @@ public class CDALDatabase: NSObject {
         self.context = context
     }
     
-    func create<EntityType: NSManagedObject>() -> EntityType {
+    public func create<EntityType: NSManagedObject>() -> EntityType {
         let item = NSEntityDescription.insertNewObjectForEntityForName("\(EntityType.self)", inManagedObjectContext: context) as! EntityType
         return item
+    }
+    // MARK: - FETCH
+    public func query<EntityType: NSManagedObject>(request:NSFetchRequest) -> [EntityType]? {
+        return (try? context.executeFetchRequest(request)) as? [EntityType]
     }
     
     // MARK: - SAVING
     public func save() {
         saveContext(context)
+    }
+    public func save(object:NSManagedObject) {
+        faultObject(object, moc: context)
     }
     public func saveContext(moc:NSManagedObjectContext) {
         moc.performBlockAndWait {
