@@ -33,12 +33,13 @@ public class CDALQuery: NSObject {
         return self
     }
     
-    public func build() {
+    public func build() -> NSFetchRequest {
         let request = NSFetchRequest(entityName: entityName)
         request.sortDescriptors = sorts
         if !predicates.isEmpty {
             let conditions = NSCompoundPredicate(type: .AndPredicateType, subpredicates: predicates)
             request.predicate = conditions
         }
+        return request
     }
 }
