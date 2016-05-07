@@ -23,11 +23,18 @@ public class CDALDatabase: NSObject {
         let item = NSEntityDescription.insertNewObjectForEntityForName(entity, inManagedObjectContext: context)
         return item
     }
+    // MARK: - QUERY
+    public func query(entityName:String) -> CDALQuery {
+        return CDALQuery(entityName: entityName)
+    }
     // MARK: - FETCH
-    public func query<EntityType: NSManagedObject>(request:NSFetchRequest) -> [EntityType]? {
+    public func fetch<EntityType: NSManagedObject>(request:NSFetchRequest) -> [EntityType]? {
         let entity = NSEntityDescription.entityForName("\(EntityType.self)".componentsSeparatedByString(".").last!, inManagedObjectContext: context)
         request.entity = entity
         return (try? context.executeFetchRequest(request)) as? [EntityType]
+    }
+    public func fetch(request:NSFetchRequest) -> [NSManagedObject]? {
+        return (try? context.executeFetchRequest(request)) as? [NSManagedObject]
     }
     
     // MARK: - SAVING
