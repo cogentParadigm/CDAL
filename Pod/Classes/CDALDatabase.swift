@@ -36,6 +36,9 @@ public class CDALDatabase: NSObject {
     public func fetch(request:NSFetchRequest) -> [NSManagedObject]? {
         return (try? context.executeFetchRequest(request)) as? [NSManagedObject]
     }
+    public func fetch<EntityType: NSManagedObject>(query:CDALQuery) -> [EntityType]? {
+        return fetch(query.build())
+    }
     
     // MARK: - SAVING
     public func save() {
