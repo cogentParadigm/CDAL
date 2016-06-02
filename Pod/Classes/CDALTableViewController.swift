@@ -9,46 +9,46 @@
 import UIKit
 import CoreData
 
-class CDALTableViewController: UITableViewController, NSFetchedResultsControllerDelegate {
+public class CDALTableViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
     var results:NSFetchedResultsController?
     let context:NSManagedObjectContext
     
-    init(moc:NSManagedObjectContext) {
+    public init(moc:NSManagedObjectContext) {
         context = moc
         super.init(style: .Plain)
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
         configureTableView()
     }
     
-    func configureTableView() {
+    public func configureTableView() {
         tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: "DefaultCell")
         tableView.rowHeight = UITableViewAutomaticDimension
     }
     
-    override func didReceiveMemoryWarning() {
+    public override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
     
-    func configureCell(cell:UITableViewCell, indexPath:NSIndexPath) {
+    public func configureCell(cell:UITableViewCell, indexPath:NSIndexPath) {
         //override to configure cell
     }
     
-    func query(cdQuery:CDALQuery, sectionKey:String?) {
+    public func query(cdQuery:CDALQuery, sectionKey:String?) {
         results = NSFetchedResultsController(fetchRequest: cdQuery.build(), managedObjectContext: context, sectionNameKeyPath: sectionKey, cacheName: "rootCache")
         results!.delegate = self
         fetch()
     }
     
-    func fetch() {
+    public func fetch() {
         do {
             try results?.performFetch()
         } catch {
@@ -58,21 +58,21 @@ class CDALTableViewController: UITableViewController, NSFetchedResultsController
     
     // MARK: - Table view data source
     
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    public override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         if let sections = results?.sections {
             return sections.count
         }
         return 0
     }
     
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    public override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if let sections = results?.sections {
             return sections[section].numberOfObjects
         }
         return 0
     }
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    public override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("DefaultCell", forIndexPath: indexPath)
         
         self.configureCell(cell, indexPath: indexPath)
@@ -82,11 +82,11 @@ class CDALTableViewController: UITableViewController, NSFetchedResultsController
     
     // MARK: - NSFetchedResultsControllerDelegate
     
-    func controllerWillChangeContent(controller: NSFetchedResultsController) {
+    public func controllerWillChangeContent(controller: NSFetchedResultsController) {
         tableView.beginUpdates()
     }
     
-    func controller(controller: NSFetchedResultsController, didChangeSection sectionInfo: NSFetchedResultsSectionInfo, atIndex sectionIndex: Int, forChangeType type: NSFetchedResultsChangeType) {
+    public func controller(controller: NSFetchedResultsController, didChangeSection sectionInfo: NSFetchedResultsSectionInfo, atIndex sectionIndex: Int, forChangeType type: NSFetchedResultsChangeType) {
         switch type {
         case .Insert:
             tableView.insertSections(NSIndexSet(index: sectionIndex), withRowAnimation: .Fade)
@@ -99,7 +99,7 @@ class CDALTableViewController: UITableViewController, NSFetchedResultsController
         }
     }
     
-    func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
+    public func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
         switch type {
         case .Insert:
             if let insertIndexPath = newIndexPath {
@@ -119,7 +119,7 @@ class CDALTableViewController: UITableViewController, NSFetchedResultsController
         }
     }
     
-    func controllerDidChangeContent(controller: NSFetchedResultsController) {
+    public func controllerDidChangeContent(controller: NSFetchedResultsController) {
         tableView.endUpdates()
     }
 
