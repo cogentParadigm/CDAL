@@ -13,6 +13,8 @@ public class CDALQuery: NSObject {
     var entityName:String
     var predicates = [NSPredicate]()
     var sorts = [NSSortDescriptor]()
+    var distinct = false
+    var properties = [String]()
     
     public init(entityName:String) {
         self.entityName = entityName
@@ -33,9 +35,24 @@ public class CDALQuery: NSObject {
         return self
     }
     
+    public func distinct(value:Bool) {
+        distinct = value
+    }
+    
+    public func properties(list:[String]) {
+        properties.appendContentsOf(list)
+    }
+    
     public func build() -> NSFetchRequest {
         let request = NSFetchRequest(entityName: entityName)
         request.sortDescriptors = sorts
+        if distinct {
+            request.returnsDistinctResults = true
+            request.resultType = .DictionaryResultType
+        }
+        if properties.count > 0 {
+            request.propertiesToFetch = properties
+        }
         if !predicates.isEmpty {
             let conditions = NSCompoundPredicate(type: .AndPredicateType, subpredicates: predicates)
             request.predicate = conditions

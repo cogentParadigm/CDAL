@@ -11,8 +11,8 @@ import CoreData
 
 public class CDALTableViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
-    var results:NSFetchedResultsController?
-    let context:NSManagedObjectContext
+    public var results:NSFetchedResultsController?
+    public let context:NSManagedObjectContext
     
     public init(moc:NSManagedObjectContext) {
         context = moc
