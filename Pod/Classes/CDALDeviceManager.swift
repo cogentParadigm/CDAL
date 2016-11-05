@@ -6,9 +6,9 @@
 //
 //
 
-public class CDALDeviceManager: NSObject {
-    private struct Constants {
-        static let appID = NSBundle.mainBundle().infoDictionary?["CFBundleIdentifier"] as? NSString
+open class CDALDeviceManager: NSObject {
+    fileprivate struct Constants {
+        static let appID = Bundle.main.infoDictionary?["CFBundleIdentifier"] as? NSString
         static let iCloudUUIDKey = ".\(Constants.appID).iCloudUUID"
     }
     
@@ -17,31 +17,31 @@ public class CDALDeviceManager: NSObject {
     var deviceListName = "CDALKnownDevices.plist"
     var query:NSMetadataQuery?
     
-    let backgroundQueue = dispatch_queue_create("CDALDeviceManager.BackgroundQueue", nil)
+    let backgroundQueue = DispatchQueue(label: "CDALDeviceManager.BackgroundQueue", attributes: [])
     
     public override init() {
         super.init()
-        if ((NSUserDefaults.standardUserDefaults().objectForKey(Constants.iCloudUUIDKey) as? String) == nil) {
-            NSUserDefaults.standardUserDefaults().setObject(NSUUID().UUIDString, forKey: Constants.iCloudUUIDKey)
-            NSUserDefaults.standardUserDefaults().synchronize()
+        if ((UserDefaults.standard.object(forKey: Constants.iCloudUUIDKey) as? String) == nil) {
+            UserDefaults.standard.set(UUID().uuidString, forKey: Constants.iCloudUUIDKey)
+            UserDefaults.standard.synchronize()
         }
     }
     
     func getDeviceID() -> String {
-        return NSUserDefaults.standardUserDefaults().objectForKey(Constants.iCloudUUIDKey) as! String
+        return UserDefaults.standard.object(forKey: Constants.iCloudUUIDKey) as! String
     }
     
     func setup() {
         uuids.removeAll()
-        deviceList = CDALDeviceList(url: deviceListURL(), queue: NSOperationQueue())
+        deviceList = CDALDeviceList(url: deviceListURL(), queue: OperationQueue())
         NSFileCoordinator.addFilePresenter(deviceList!)
         query = NSMetadataQuery()
         query?.searchScopes = [NSMetadataQueryUbiquitousDataScope]
         query?.predicate = NSPredicate(format: "%K LIKE %@", argumentArray: [NSMetadataItemFSNameKey, deviceListName])
-        let notificationCenter = NSNotificationCenter.defaultCenter()
-        notificationCenter.addObserver(self, selector: #selector(deviceListChanged(_:)), name: NSMetadataQueryDidUpdateNotification, object: query!)
-        dispatch_async(dispatch_get_main_queue()) {
-            self.query?.startQuery()
+        let notificationCenter = NotificationCenter.default
+        notificationCenter.addObserver(self, selector: #selector(deviceListChanged(_:)), name: NSNotification.Name.NSMetadataQueryDidUpdate, object: query!)
+        DispatchQueue.main.async {
+            self.query?.start()
         }
     }
     
@@ -50,16 +50,16 @@ public class CDALDeviceManager: NSObject {
             NSFileCoordinator.removeFilePresenter(deviceList!)
             deviceList = nil
             uuids.removeAll()
-            NSNotificationCenter.defaultCenter().removeObserver(self, name: NSMetadataQueryDidUpdateNotification, object: self.query!)
-            dispatch_async(dispatch_get_main_queue()) {
-                self.query?.stopQuery()
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.NSMetadataQueryDidUpdate, object: self.query!)
+            DispatchQueue.main.async {
+                self.query?.stop()
                 self.query = nil
             }
         }
     }
     
-    func deviceListChanged(notification:NSNotification) {
-        dispatch_async(backgroundQueue) {
+    func deviceListChanged(_ notification:Notification) {
+        backgroundQueue.async {
             self.query?.disableUpdates()
             self.refreshDeviceList(false) { deviceListExisted, currentDevicePresent in
                 self.query?.enableUpdates()
@@ -67,18 +67,18 @@ public class CDALDeviceManager: NSObject {
         }
     }
     
-    func refreshDeviceList(canAddCurrentDevice:Bool, completion:(deviceListExisted:Bool, currentDevicePresent:Bool) -> Void) {
+    func refreshDeviceList(_ canAddCurrentDevice:Bool, completion:@escaping (_ deviceListExisted:Bool, _ currentDevicePresent:Bool) -> Void) {
         uuids.removeAll()
-        let uuid = NSUserDefaults.standardUserDefaults().stringForKey(Constants.iCloudUUIDKey)!
+        let uuid = UserDefaults.standard.string(forKey: Constants.iCloudUUIDKey)!
         
         download(deviceListURL(), dispatchQueue: backgroundQueue) { syncCompleted, error in
             var err:NSError? = nil
             let coordinator = NSFileCoordinator(filePresenter: self.deviceList)
             var deviceListExisted = false
             var currentDevicePresent = false
-            coordinator.coordinateReadingItemAtURL(self.deviceListURL(), options: .WithoutChanges, error: &err) { url in
-                let dict = NSDictionary(contentsOfURL: url)
-                if let devices = dict?.objectForKey("DeviceUUIDs") as? [String] {
+            coordinator.coordinate(readingItemAt: self.deviceListURL(), options: .withoutChanges, error: &err) { url in
+                let dict = NSDictionary(contentsOf: url)
+                if let devices = dict?.object(forKey: "DeviceUUIDs") as? [String] {
                     self.uuids = devices
                     if devices.count > 0 {
                         deviceListExisted = true
@@ -92,48 +92,48 @@ public class CDALDeviceManager: NSObject {
                 self.uuids.append(uuid)
                 let newList = NSDictionary()
                 newList.setValue(self.uuids, forKey: "DeviceUUIDs")
-                let baseURL = NSFileManager.defaultManager().URLForUbiquityContainerIdentifier(nil)!
-                coordinator.coordinateWritingItemAtURL(baseURL, options: NSFileCoordinatorWritingOptions.ContentIndependentMetadataOnly, error: &err2) { url in
+                let baseURL = FileManager.default.url(forUbiquityContainerIdentifier: nil)!
+                coordinator.coordinate(writingItemAt: baseURL, options: NSFileCoordinator.WritingOptions.contentIndependentMetadataOnly, error: &err2) { url in
                     do {
-                        try NSFileManager.defaultManager().createDirectoryAtURL(url, withIntermediateDirectories: true, attributes: nil)
+                        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
                     } catch {
                         
                     }
                 }
                 
                 var err3:NSError? = nil
-                coordinator.coordinateWritingItemAtURL(self.deviceListURL(), options: .ForReplacing, error: &err3) { url in
-                    newList.writeToURL(url, atomically: false)
+                coordinator.coordinate(writingItemAt: self.deviceListURL(), options: .forReplacing, error: &err3) { url in
+                    newList.write(to: url, atomically: false)
                 }
             }
             
-            completion(deviceListExisted: deviceListExisted, currentDevicePresent: currentDevicePresent)
+            completion(deviceListExisted, currentDevicePresent)
         }
     }
     
-    private func deviceListURL() -> NSURL {
-        let iCloudURL:NSURL = NSFileManager.defaultManager().URLForUbiquityContainerIdentifier(nil)!
-        return iCloudURL.URLByAppendingPathComponent(deviceListName)
+    fileprivate func deviceListURL() -> URL {
+        let iCloudURL:URL = FileManager.default.url(forUbiquityContainerIdentifier: nil)!
+        return iCloudURL.appendingPathComponent(deviceListName)
     }
     
-    private func download(url:NSURL, dispatchQueue:dispatch_queue_t, completion:(syncCompleted:Bool, error:NSError?) -> Void) {
+    fileprivate func download(_ url:URL, dispatchQueue:DispatchQueue, completion:@escaping (_ syncCompleted:Bool, _ error:NSError?) -> Void) {
         
         //check if the file is already downloaded
         var isDownloaded:AnyObject? = nil
         do {
-            try url.getResourceValue(&isDownloaded, forKey: NSURLUbiquitousItemDownloadingStatusKey)
+            try (url as NSURL).getResourceValue(&isDownloaded, forKey: URLResourceKey.ubiquitousItemDownloadingStatusKey)
         } catch _ {
             
         }
-        if isDownloaded as? String == NSURLUbiquitousItemDownloadingStatusCurrent {
-            completion(syncCompleted: true, error: nil)
+        if isDownloaded as? URLUbiquitousItemDownloadingStatus == URLUbiquitousItemDownloadingStatus.current {
+            completion(true, nil)
             return
         }
         
         //check if the file is currently downloading
         var isDownloading:AnyObject? = nil
         do {
-            try url.getResourceValue(&isDownloading, forKey: NSURLUbiquitousItemIsDownloadingKey)
+            try (url as NSURL).getResourceValue(&isDownloading, forKey: URLResourceKey.ubiquitousItemIsDownloadingKey)
         } catch _ {
             
         }
@@ -141,13 +141,13 @@ public class CDALDeviceManager: NSObject {
             //do nothing - wait for next run
         } else {
             do {
-                try NSFileManager.defaultManager().startDownloadingUbiquitousItemAtURL(url)
+                try FileManager.default.startDownloadingUbiquitousItem(at: url)
             } catch {
-                completion(syncCompleted: false, error: nil)
+                completion(false, nil)
             }
         }
         
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(0.2 * Double(NSEC_PER_SEC))), dispatchQueue) {
+        dispatchQueue.asyncAfter(deadline: DispatchTime.now() + Double(Int64(0.2 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) {
             self.download(url, dispatchQueue: dispatchQueue, completion: completion)
         }
     }

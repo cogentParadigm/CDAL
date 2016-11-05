@@ -11,28 +11,28 @@ public protocol CDALBackendProtocol {
     func isAvailable() -> Bool
     func storeExists() -> Bool
     func getStoreName() -> String
-    func documentsDirectory() -> NSURL
-    func storeURL() -> NSURL
+    func documentsDirectory() -> URL
+    func storeURL() -> URL
     func storeOptions() -> NSDictionary
-    func addToCoordinator(coordinator:NSPersistentStoreCoordinator) throws -> NSPersistentStore
-    func migrateStore(source:NSPersistentStore, coordinator:NSPersistentStoreCoordinator) throws -> NSPersistentStore
+    func addToCoordinator(_ coordinator:NSPersistentStoreCoordinator) throws -> NSPersistentStore
+    func migrateStore(_ source:NSPersistentStore, coordinator:NSPersistentStoreCoordinator) throws -> NSPersistentStore
     func delete()
 }
 
 public protocol CDALCloudEnabledBackendProtocol: CDALBackendProtocol {
-    func authenticate(completion:((Bool) -> Void)?)
+    func authenticate(_ completion:((Bool) -> Void)?)
 }
 
 public extension CDALBackendProtocol {
     func isAvailable() -> Bool {
         return true
     }
-    func documentsDirectory() -> NSURL {
-        let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
-        return urls[urls.count-1] as NSURL
+    func documentsDirectory() -> URL {
+        let urls = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return urls[urls.count-1] as URL
     }
-    func storeURL() -> NSURL {
-        return documentsDirectory().URLByAppendingPathComponent(getStoreName()).URLByAppendingPathExtension("sqlite")
+    func storeURL() -> URL {
+        return documentsDirectory().appendingPathComponent(getStoreName()).appendingPathExtension("sqlite")
     }
     func storeOptions() -> NSDictionary {
         return [NSMigratePersistentStoresAutomaticallyOption:true,
@@ -42,27 +42,23 @@ public extension CDALBackendProtocol {
     func storeExists() -> Bool {
         var isDir: ObjCBool = false
         let url = storeURL()
-        if let path = url.path {
-            let fileExists: Bool = NSFileManager.defaultManager().fileExistsAtPath(path, isDirectory: &isDir)
-            return fileExists
-        } else {
-            return false
-        }
+        let fileExists: Bool = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir)
+        return fileExists
     }
-    func addToCoordinator(coordinator: NSPersistentStoreCoordinator) throws -> NSPersistentStore {
-        let store: NSPersistentStore = try coordinator.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: storeURL(), options: (storeOptions() as [NSObject : AnyObject]))
+    func addToCoordinator(_ coordinator: NSPersistentStoreCoordinator) throws -> NSPersistentStore {
+        let store: NSPersistentStore = try coordinator.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: storeURL(), options: (storeOptions() as! [AnyHashable: Any]))
         return store
     }
-    func migrateStore(source:NSPersistentStore, coordinator: NSPersistentStoreCoordinator) throws -> NSPersistentStore {
-        let store: NSPersistentStore = try coordinator.migratePersistentStore(source, toURL:storeURL(), options:(storeOptions() as [NSObject : AnyObject]), withType:NSSQLiteStoreType)
+    func migrateStore(_ source:NSPersistentStore, coordinator: NSPersistentStoreCoordinator) throws -> NSPersistentStore {
+        let store: NSPersistentStore = try coordinator.migratePersistentStore(source, to:storeURL(), options:(storeOptions() as! [AnyHashable: Any]), withType:NSSQLiteStoreType)
         return store
     }
-    func saveBackup(coordinator:NSPersistentStoreCoordinator) -> Bool {
+    func saveBackup(_ coordinator:NSPersistentStoreCoordinator) -> Bool {
         do {
             let source: NSPersistentStore = try addToCoordinator(coordinator)
             let destination: NSPersistentStore?
             do {
-                destination = try coordinator.migratePersistentStore(source, toURL:backupStoreURL(), options:(storeOptions() as [NSObject : AnyObject]), withType:NSSQLiteStoreType)
+                destination = try coordinator.migratePersistentStore(source, to:backupStoreURL(), options:(storeOptions() as! [AnyHashable: Any]), withType:NSSQLiteStoreType)
             } catch {
                 destination = nil
             }
@@ -76,33 +72,31 @@ public extension CDALBackendProtocol {
             return false
         }
     }
-    func backupStoreURL() -> NSURL {
-        let dateFormatter: NSDateFormatter = NSDateFormatter()
+    func backupStoreURL() -> URL {
+        let dateFormatter: DateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyyMMddHHmmssSSS"
         
-        let dateString: String = dateFormatter.stringFromDate(NSDate())
+        let dateString: String = dateFormatter.string(from: Date())
         
         
-        let fileName: NSString = getStoreName() + "_Backup_" + dateString
+        let fileName = getStoreName() + "_Backup_" + dateString
         
-        return documentsDirectory().URLByAppendingPathComponent(fileName as String).URLByAppendingPathExtension("sqlite")
+        return documentsDirectory().appendingPathComponent(fileName as String).appendingPathExtension("sqlite")
     }
     func delete() {
         deleteStoreFile(storeURL())
     }
-    func deleteStoreFile(fileURL:NSURL) {
-        if let path = fileURL.path {
-            if (!NSFileManager.defaultManager().fileExistsAtPath(path)) {
-                return
-            }
+    func deleteStoreFile(_ fileURL:URL) {
+        if (!FileManager.default.fileExists(atPath: fileURL.path)) {
+            return
         }
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.default).async(execute: {
             let fileCoordinator:NSFileCoordinator = NSFileCoordinator()
             var error: NSError? = nil
-            fileCoordinator.coordinateWritingItemAtURL(fileURL, options: NSFileCoordinatorWritingOptions.ForDeleting, error: &error, byAccessor: {writingURL in
-                let fileManager:NSFileManager = NSFileManager()
+            fileCoordinator.coordinate(writingItemAt: fileURL, options: NSFileCoordinator.WritingOptions.forDeleting, error: &error, byAccessor: {writingURL in
+                let fileManager:FileManager = FileManager()
                 do {
-                    try fileManager.removeItemAtURL(writingURL)
+                    try fileManager.removeItem(at: writingURL)
                 } catch {
                     fatalError()
                 }

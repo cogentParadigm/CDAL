@@ -8,7 +8,7 @@
 
 import CoreData
 
-public class CDALLocalBackend: NSObject, CDALBackendProtocol {
+open class CDALLocalBackend: NSObject, CDALBackendProtocol {
     
     let name:String
     
@@ -17,7 +17,7 @@ public class CDALLocalBackend: NSObject, CDALBackendProtocol {
         super.init()
     }
     
-    public func getStoreName() -> String {
+    open func getStoreName() -> String {
         return name
     }
 

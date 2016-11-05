@@ -8,16 +8,16 @@
 
 import CoreData
 
-public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
+open class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
     
-    private struct Constants {
-        static let appID = NSBundle.mainBundle().infoDictionary?["CFBundleIdentifier"] as? NSString
+    fileprivate struct Constants {
+        static let appID = Bundle.main.infoDictionary?["CFBundleIdentifier"] as? NSString
         static let iCloudContainerID = "iCloud.\(Constants.appID)"
         static let ubiquityContainerKey = ".\(Constants.appID).ubiquityContainerID"
         static let ubiquityTokenKey = ".\(Constants.appID).ubiquityToken"
     }
     
-    var ubiquityContainerID: NSString? = Constants.iCloudContainerID
+    var ubiquityContainerID: NSString? = Constants.iCloudContainerID as NSString?
     var hasCheckedCloud = false
     var cloudFileExists = false
     var rebuildFromCloud = false
@@ -29,22 +29,22 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
         super.init()
     }
     
-    public func isAvailable() -> Bool {
-        if let _ = NSFileManager.defaultManager().ubiquityIdentityToken {
+    open func isAvailable() -> Bool {
+        if let _ = FileManager.default.ubiquityIdentityToken {
             return true
         }
         else {
             return false
         }
     }
-    public func storeExists() -> Bool {
+    open func storeExists() -> Bool {
         // if iCloud container is not available just return NO
         if (!isAvailable()) {
             return false
         }
         
         if let path = containerURL()?.path {
-            var _: Bool = NSFileManager.defaultManager().fileExistsAtPath(path)
+            var _: Bool = FileManager.default.fileExists(atPath: path)
         }
 
         // This may block for some time if a _query has not returned results yet
@@ -53,11 +53,11 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
         return icloudFileExists
     }
     
-    public func getStoreName() -> String {
+    open func getStoreName() -> String {
         return name
     }
     
-    public func authenticate(completion:((Bool) -> Void)?) {
+    open func authenticate(_ completion:((Bool) -> Void)?) {
         if ubiquitousTokenHasChanged() {
             completion?(true)
         } else {
@@ -67,7 +67,7 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
     }
     
 
-    public func storeOptions() -> NSDictionary {
+    open func storeOptions() -> NSDictionary {
         
         var options: NSDictionary
         
@@ -88,11 +88,11 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
         return options
     }
     
-    public func delete() {
+    open func delete() {
         var result:Bool = false
         do {
-            try NSPersistentStoreCoordinator.removeUbiquitousContentAndPersistentStoreAtURL(storeURL(),
-                                                                                            options:(storeOptions() as [NSObject : AnyObject]))
+            try NSPersistentStoreCoordinator.removeUbiquitousContentAndPersistentStore(at: storeURL() as URL,
+                                                                                            options:(storeOptions() as! [AnyHashable: Any]))
             result = true
         } catch  {
             result = false
@@ -101,45 +101,45 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
         if (!result) {
             return
         } else {
-            deleteStoreFile(documentsDirectory().URLByAppendingPathComponent("CoreDataUbiquitySupport"))
+            deleteStoreFile(documentsDirectory().appendingPathComponent("CoreDataUbiquitySupport"))
         }
     }
     
-    private func storeToken() {
-        if let token:protocol<NSCoding, NSCopying, NSObjectProtocol>? = NSFileManager.defaultManager().ubiquityIdentityToken {
+    fileprivate func storeToken() {
+        if let token:(NSCoding & NSCopying & NSObjectProtocol)? = FileManager.default.ubiquityIdentityToken {
             // Write the ubquity identity token to NSUserDefaults if it exists.
             // Otherwise, remove the key.
             if let tk = token {
-                let newTokenData: NSData = NSKeyedArchiver.archivedDataWithRootObject(tk)
-                NSUserDefaults.standardUserDefaults().setObject(newTokenData, forKey:Constants.ubiquityTokenKey)
+                let newTokenData: Data = NSKeyedArchiver.archivedData(withRootObject: tk)
+                UserDefaults.standard.set(newTokenData, forKey:Constants.ubiquityTokenKey)
             }
         }
         else {
-            NSUserDefaults.standardUserDefaults().removeObjectForKey(Constants.ubiquityTokenKey)
+            UserDefaults.standard.removeObject(forKey: Constants.ubiquityTokenKey)
         }
     }
     
-    private func containerURL() -> NSURL? {
-        if let iCloudURL:NSURL = NSFileManager.defaultManager().URLForUbiquityContainerIdentifier(((ubiquityContainerID as! String))) {
-            return iCloudURL.URLByAppendingPathComponent("CoreData").URLByAppendingPathComponent(name)
+    fileprivate func containerURL() -> URL? {
+        if let iCloudURL:URL = FileManager.default.url(forUbiquityContainerIdentifier: ((ubiquityContainerID as! String))) {
+            return iCloudURL.appendingPathComponent("CoreData").appendingPathComponent(name)
         }
         else {
             return nil
         }
     }
     
-    private func doesICloudFileExist() -> Bool {
+    fileprivate func doesICloudFileExist() -> Bool {
         var count: Int  = 0
         
         // Start with 10ms time boxes
-        let ti: NSTimeInterval  = 2.0
+        let ti: TimeInterval  = 2.0
         
         // Wait until delegate did callback
         while (!hasCheckedCloud) {
             //has not checked iCloud yet, waiting
-            let date: NSDate = NSDate(timeIntervalSinceNow: ti)
+            let date: Date = Date(timeIntervalSinceNow: ti)
             // Let the current run-loop do it's magif for one time-box.
-            NSRunLoop.currentRunLoop().runMode(NSRunLoopCommonModes, beforeDate: date)
+            RunLoop.current.run(mode: RunLoopMode.commonModes, before: date)
             // Double the time box, for next try, max out at 1000ms.
             //ti = MIN(1.0, ti * 2);
             count = count + 1
@@ -164,13 +164,13 @@ public class CDALCloudBackend: NSObject, CDALCloudEnabledBackendProtocol {
     }
     
 
-    private func ubiquitousTokenHasChanged() -> Bool {
+    fileprivate func ubiquitousTokenHasChanged() -> Bool {
         
-        let activeToken = NSFileManager.defaultManager().ubiquityIdentityToken
+        let activeToken = FileManager.default.ubiquityIdentityToken
         
-        if let oldTokenData: NSData = NSUserDefaults.standardUserDefaults().objectForKey(Constants.ubiquityTokenKey) as? NSData {
+        if let oldTokenData: Data = UserDefaults.standard.object(forKey: Constants.ubiquityTokenKey) as? Data {
             
-            if let oldToken: protocol<NSCoding, NSCopying, NSObjectProtocol> = NSKeyedUnarchiver.unarchiveObjectWithData(oldTokenData) as? protocol<NSCoding, NSCopying, NSObjectProtocol> {
+            if let oldToken: NSCoding & NSCopying & NSObjectProtocol = NSKeyedUnarchiver.unarchiveObject(with: oldTokenData) as? NSCoding & NSCopying & NSObjectProtocol {
                 
                 if (!oldToken.isEqual(activeToken)) {
                     return true

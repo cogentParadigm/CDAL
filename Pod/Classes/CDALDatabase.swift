@@ -7,7 +7,7 @@
 //
 import CoreData
 
-public class CDALDatabase: NSObject {
+open class CDALDatabase: NSObject {
     
     let context:NSManagedObjectContext
     
@@ -15,40 +15,40 @@ public class CDALDatabase: NSObject {
         self.context = context
     }
     
-    public func create<EntityType: NSManagedObject>() -> EntityType {
-        let item = NSEntityDescription.insertNewObjectForEntityForName("\(EntityType.self)", inManagedObjectContext: context) as! EntityType
+    open func create<EntityType: NSManagedObject>() -> EntityType {
+        let item = NSEntityDescription.insertNewObject(forEntityName: "\(EntityType.self)", into: context) as! EntityType
         return item
     }
-    public func create(entity:String) -> NSManagedObject {
-        let item = NSEntityDescription.insertNewObjectForEntityForName(entity, inManagedObjectContext: context)
+    open func create(_ entity:String) -> NSManagedObject {
+        let item = NSEntityDescription.insertNewObject(forEntityName: entity, into: context)
         return item
     }
     // MARK: - QUERY
-    public func query(entityName:String) -> CDALQuery {
+    open func query(_ entityName:String) -> CDALQuery {
         return CDALQuery(entityName: entityName)
     }
     // MARK: - FETCH
-    public func fetch<EntityType: NSManagedObject>(request:NSFetchRequest) -> [EntityType]? {
-        let entity = NSEntityDescription.entityForName("\(EntityType.self)".componentsSeparatedByString(".").last!, inManagedObjectContext: context)
+    open func fetch<EntityType: NSManagedObject>(_ request:NSFetchRequest<NSFetchRequestResult>) -> [EntityType]? {
+        let entity = NSEntityDescription.entity(forEntityName: "\(EntityType.self)".components(separatedBy: ".").last!, in: context)
         request.entity = entity
-        return (try? context.executeFetchRequest(request)) as? [EntityType]
+        return (try? context.fetch(request)) as? [EntityType]
     }
-    public func fetch(request:NSFetchRequest) -> [NSManagedObject]? {
-        return (try? context.executeFetchRequest(request)) as? [NSManagedObject]
+    open func fetch(_ request:NSFetchRequest<NSFetchRequestResult>) -> [NSManagedObject]? {
+        return (try? context.fetch(request)) as? [NSManagedObject]
     }
-    public func fetch<EntityType: NSManagedObject>(query:CDALQuery) -> [EntityType]? {
+    open func fetch<EntityType: NSManagedObject>(_ query:CDALQuery) -> [EntityType]? {
         return fetch(query.build())
     }
     
     // MARK: - SAVING
-    public func save() {
+    open func save() {
         saveContext(context)
     }
-    public func save(object:NSManagedObject) {
+    open func save(_ object:NSManagedObject) {
         faultObject(object, moc: context)
     }
-    public func saveContext(moc:NSManagedObjectContext) {
-        moc.performBlockAndWait {
+    open func saveContext(_ moc:NSManagedObjectContext) {
+        moc.performAndWait {
             
             if moc.hasChanges {
                 
@@ -61,20 +61,20 @@ public class CDALDatabase: NSObject {
             } else {
                 //print("SKIPPED saving context \(moc.description) because there are no changes")
             }
-            if let parentContext = moc.parentContext {
+            if let parentContext = moc.parent {
                 self.saveContext(parentContext)
             }
         }
     }
-    public func faultObject(object:NSManagedObject, moc:NSManagedObjectContext) {
-        moc.performBlockAndWait {
+    open func faultObject(_ object:NSManagedObject, moc:NSManagedObjectContext) {
+        moc.performAndWait {
             if object.hasChanges {
                 self.saveContext(moc)
             }
-            if object.fault == false {
-                moc.refreshObject(object, mergeChanges: false)
+            if object.isFault == false {
+                moc.refresh(object, mergeChanges: false)
             }
-            if let parentMoc = moc.parentContext {
+            if let parentMoc = moc.parent {
                 self.faultObject(object, moc: parentMoc)
             }
         }

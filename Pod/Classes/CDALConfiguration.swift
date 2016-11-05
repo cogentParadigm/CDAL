@@ -8,7 +8,7 @@
 
 public protocol CDALConfigurationProtocol {
     func isFirstInstall() -> Bool
-    func setFirstInstall(first:Bool)
+    func setFirstInstall(_ first:Bool)
     
     func isCloudAvailable() -> Bool
     func isCloudEnabled() -> Bool
@@ -19,24 +19,24 @@ public protocol CDALConfigurationProtocol {
     func isStoreOpening() -> Bool
     func isStoreOpen() -> Bool
     
-    func setCloudAvailable(available:Bool)
-    func setCloudEnabled(enabled:Bool)
-    func shouldUseCloud(should:Bool)
+    func setCloudAvailable(_ available:Bool)
+    func setCloudEnabled(_ enabled:Bool)
+    func shouldUseCloud(_ should:Bool)
     func clearCloudPreference()
-    func shouldMigrateData(should:Bool)
-    func hasJustMigrated(has:Bool)
-    func isStoreOpening(open:Bool)
-    func isStoreOpen(open:Bool)
+    func shouldMigrateData(_ should:Bool)
+    func hasJustMigrated(_ has:Bool)
+    func isStoreOpening(_ open:Bool)
+    func isStoreOpen(_ open:Bool)
     
     func update()
     
     func getModelName() -> String
 }
 
-public class CDALConfiguration: NSObject, CDALConfigurationProtocol {
+open class CDALConfiguration: NSObject, CDALConfigurationProtocol {
     
-    private struct Constants {
-        static let appID = NSBundle.mainBundle().infoDictionary?["CFBundleIdentifier"] as? NSString
+    fileprivate struct Constants {
+        static let appID = Bundle.main.infoDictionary?["CFBundleIdentifier"] as? NSString
         static let iCloudPreferenceKey = ".\(Constants.appID).UseICloudStorage"
         static let iCloudPreferenceSelected = ".\(Constants.appID).iCloudStoragePreferenceSelected"
     }
@@ -59,71 +59,71 @@ public class CDALConfiguration: NSObject, CDALConfigurationProtocol {
         super.init()
     }
     
-    public func isFirstInstall() -> Bool {
+    open func isFirstInstall() -> Bool {
         return _firstInstall
     }
-    public func setFirstInstall(first: Bool) {
+    open func setFirstInstall(_ first: Bool) {
         _firstInstall = true
     }
-    public func isCloudAvailable() -> Bool {
+    open func isCloudAvailable() -> Bool {
         return _cloudAvailable
     }
-    public func setCloudAvailable(available: Bool) {
+    open func setCloudAvailable(_ available: Bool) {
         _cloudAvailable = available
     }
-    public func isCloudEnabled() -> Bool {
+    open func isCloudEnabled() -> Bool {
         return _cloudEnabled
     }
-    public func setCloudEnabled(enabled: Bool) {
+    open func setCloudEnabled(_ enabled: Bool) {
         _cloudEnabled = enabled
     }
-    public func shouldUseCloud() -> Bool {
+    open func shouldUseCloud() -> Bool {
         return _shouldUseCloud
     }
-    public func isCloudPreferenceSelected() -> Bool {
+    open func isCloudPreferenceSelected() -> Bool {
         return _cloudPreferenceSelected
     }
-    public func shouldMigrateData() -> Bool {
+    open func shouldMigrateData() -> Bool {
         return _shouldMigrateData
     }
-    public func shouldUseCloud(should: Bool) {
+    open func shouldUseCloud(_ should: Bool) {
         _shouldUseCloud = should
-        NSUserDefaults.standardUserDefaults().setBool(should, forKey:Constants.iCloudPreferenceKey)
-        NSUserDefaults.standardUserDefaults().setValue("YES", forKey:Constants.iCloudPreferenceSelected)
-        NSUserDefaults.standardUserDefaults().synchronize()
+        UserDefaults.standard.set(should, forKey:Constants.iCloudPreferenceKey)
+        UserDefaults.standard.setValue("YES", forKey:Constants.iCloudPreferenceSelected)
+        UserDefaults.standard.synchronize()
     }
-    public func hasJustMigrated() -> Bool {
+    open func hasJustMigrated() -> Bool {
         return _hasJustMigrated
     }
-    public func shouldMigrateData(should: Bool) {
+    open func shouldMigrateData(_ should: Bool) {
         _shouldMigrateData = should
     }
-    public func hasJustMigrated(has: Bool) {
+    open func hasJustMigrated(_ has: Bool) {
         _hasJustMigrated = has
     }
-    public func isStoreOpen() -> Bool {
+    open func isStoreOpen() -> Bool {
         return _isStoreOpen
     }
-    public func isStoreOpening() -> Bool {
+    open func isStoreOpening() -> Bool {
         return _isStoreOpening
     }
-    public func isStoreOpen(open: Bool) {
+    open func isStoreOpen(_ open: Bool) {
         _isStoreOpen = open
     }
-    public func isStoreOpening(open: Bool) {
+    open func isStoreOpening(_ open: Bool) {
         _isStoreOpening = open
     }
-    public func clearCloudPreference() {
+    open func clearCloudPreference() {
         shouldUseCloud(false)
-        NSUserDefaults.standardUserDefaults().removeObjectForKey(Constants.iCloudPreferenceSelected)
+        UserDefaults.standard.removeObject(forKey: Constants.iCloudPreferenceSelected)
     }
     
-    public func update() {
+    open func update() {
         setVersion()
         checkCloudPreference()
     }
     
-    public func getModelName() -> String {
+    open func getModelName() -> String {
         return modelName
     }
     
@@ -133,14 +133,14 @@ public class CDALConfiguration: NSObject, CDALConfigurationProtocol {
      */
     func setVersion() {
         // this function detects what is the CFBundle version of this application and set it in the settings bundle
-        let defaults: NSUserDefaults = NSUserDefaults.standardUserDefaults()  // transfer the current version number into the defaults so that this correct value will be displayed when the user visit settings page later
+        let defaults: UserDefaults = UserDefaults.standard  // transfer the current version number into the defaults so that this correct value will be displayed when the user visit settings page later
         
-        let version: NSString? = NSBundle.mainBundle().objectForInfoDictionaryKey("CFBundleShortVersionString") as? NSString
+        let version: NSString? = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? NSString
         
-        let build: NSString? = NSBundle.mainBundle().objectForInfoDictionaryKey("CFBundleVersion") as? NSString
+        let build: NSString? = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? NSString
         
-        defaults.setObject(version, forKey:"version")
-        defaults.setObject(build, forKey:"build")
+        defaults.set(version, forKey:"version")
+        defaults.set(build, forKey:"build")
         defaults.synchronize()
     }
     
@@ -148,8 +148,8 @@ public class CDALConfiguration: NSObject, CDALConfigurationProtocol {
      * sets the values of isCloudPreferenceSelected and shouldUseCloud
      */
     func checkCloudPreference() {
-        let cloudPreference = NSUserDefaults.standardUserDefaults().boolForKey(Constants.iCloudPreferenceKey)
-        if let _ = NSUserDefaults.standardUserDefaults().stringForKey(Constants.iCloudPreferenceSelected) {
+        let cloudPreference = UserDefaults.standard.bool(forKey: Constants.iCloudPreferenceKey)
+        if let _ = UserDefaults.standard.string(forKey: Constants.iCloudPreferenceSelected) {
             //USER HAS SELECTED A PREFERENCE
             _cloudPreferenceSelected = true
             if cloudPreference {
@@ -166,7 +166,7 @@ public class CDALConfiguration: NSObject, CDALConfigurationProtocol {
         }
     }
     
-    func configure(completion:(() -> Void)?) {
+    func configure(_ completion:(() -> Void)?) {
         setVersion()
         // 1. show background indicator
         
@@ -224,7 +224,7 @@ public class CDALConfiguration: NSObject, CDALConfigurationProtocol {
             //self.cloud.setConfiguration(self)
             // 10. exit
             if (completion != nil) {
-                NSOperationQueue.mainQueue().addOperationWithBlock {
+                OperationQueue.main.addOperation {
                     completion!()
                 }
             }

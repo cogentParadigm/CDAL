@@ -8,7 +8,7 @@
 
 import CoreData
 
-public class CDALQuery: NSObject {
+open class CDALQuery: NSObject {
     
     var entityName:String
     var predicates = [NSPredicate]()
@@ -20,41 +20,41 @@ public class CDALQuery: NSObject {
         self.entityName = entityName
     }
     
-    public func from(entityName:String) -> CDALQuery {
+    open func from(_ entityName:String) -> CDALQuery {
         self.entityName = entityName
         return self
     }
     
-    public func sort(key:String, ascending:Bool) -> CDALQuery {
+    open func sort(_ key:String, ascending:Bool) -> CDALQuery {
         sorts.append(NSSortDescriptor(key: key, ascending: ascending))
         return self
     }
     
-    public func condition(predicate:NSPredicate) -> CDALQuery {
+    open func condition(_ predicate:NSPredicate) -> CDALQuery {
         predicates.append(predicate)
         return self
     }
     
-    public func distinct(value:Bool) {
+    open func distinct(_ value:Bool) {
         distinct = value
     }
     
-    public func properties(list:[String]) {
-        properties.appendContentsOf(list)
+    open func properties(_ list:[String]) {
+        properties.append(contentsOf: list)
     }
     
-    public func build() -> NSFetchRequest {
-        let request = NSFetchRequest(entityName: entityName)
+    open func build() -> NSFetchRequest<NSFetchRequestResult> {
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
         request.sortDescriptors = sorts
         if distinct {
             request.returnsDistinctResults = true
-            request.resultType = .DictionaryResultType
+            request.resultType = .dictionaryResultType
         }
         if properties.count > 0 {
             request.propertiesToFetch = properties
         }
         if !predicates.isEmpty {
-            let conditions = NSCompoundPredicate(type: .AndPredicateType, subpredicates: predicates)
+            let conditions = NSCompoundPredicate(type: .and, subpredicates: predicates)
             request.predicate = conditions
         }
         return request

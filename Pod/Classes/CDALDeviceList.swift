@@ -8,10 +8,10 @@
 
 class CDALDeviceList: NSObject, NSFilePresenter {
     
-    var presentedItemURL: NSURL?
-    var presentedItemOperationQueue: NSOperationQueue
+    var presentedItemURL: URL?
+    var presentedItemOperationQueue: OperationQueue
     
-    public init(url:NSURL, queue:NSOperationQueue) {
+    public init(url:URL, queue:OperationQueue) {
         presentedItemURL = url
         presentedItemOperationQueue = queue
         super.init()
@@ -21,7 +21,7 @@ class CDALDeviceList: NSObject, NSFilePresenter {
         
     }
     
-    func accommodatePresentedItemDeletionWithCompletionHandler(completionHandler: (NSError?) -> Void) {
+    func accommodatePresentedItemDeletion(completionHandler: @escaping (Error?) -> Void) {
         completionHandler(nil)
     }
     

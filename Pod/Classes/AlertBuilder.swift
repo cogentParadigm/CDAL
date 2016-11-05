@@ -12,7 +12,7 @@ class AlertBuilder: NSObject {
     var completion:(()->Void)?
     
     init(title:String, message:String) {
-        controller = UIAlertController(title: title, message: message, preferredStyle: .Alert)
+        controller = UIAlertController(title: title, message: message, preferredStyle: .alert)
         super.init()
     }
     
@@ -21,16 +21,16 @@ class AlertBuilder: NSObject {
         setCompletionHandler(handler)
     }
     
-    func setCompletionHandler(handler:(()->Void)?) -> AlertBuilder {
+    func setCompletionHandler(_ handler:(()->Void)?) -> AlertBuilder {
         completion = handler
         return self
     }
     
-    func addAction(title:String, handler:(UIAlertAction)->Void) -> AlertBuilder {
-        let action = UIAlertAction(title: title, style: UIAlertActionStyle.Default) { (alert:UIAlertAction!) in
+    func addAction(_ title:String, handler:@escaping (UIAlertAction)->Void) -> AlertBuilder {
+        let action = UIAlertAction(title: title, style: UIAlertActionStyle.default) { (alert:UIAlertAction!) in
             handler(alert)
             if (self.completion != nil) {
-                NSOperationQueue.mainQueue().addOperationWithBlock {
+                OperationQueue.main.addOperation {
                     self.completion!()
                 }
             }
@@ -40,14 +40,14 @@ class AlertBuilder: NSObject {
     }
     
     func show() -> AlertBuilder {
-        if let target = UIApplication.sharedApplication().keyWindow?.rootViewController {
+        if let target = UIApplication.shared.keyWindow?.rootViewController {
             
             
-            if let view:UIView = UIApplication.sharedApplication().keyWindow?.subviews.last {
+            if let view:UIView = UIApplication.shared.keyWindow?.subviews.last {
                 
                 controller.popoverPresentationController?.sourceView = view
                 
-                target.presentViewController(controller, animated: true, completion: nil)
+                target.present(controller, animated: true, completion: nil)
             }
         }
         return self

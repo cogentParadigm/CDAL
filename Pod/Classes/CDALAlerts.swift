@@ -8,9 +8,9 @@
 
 import UIKit
 
-public class CDALAlerts: NSObject {
+open class CDALAlerts: NSObject {
     
-    public func cloudPreference(completion:((Int)->Void)?) {
+    open func cloudPreference(_ completion:((Int)->Void)?) {
         AlertBuilder(title: "Choose Storage Option", message: "Should documents be stored in iCloud or on just this device?")
         .addAction("Local only") { _ in
             completion?(1)
@@ -21,13 +21,13 @@ public class CDALAlerts: NSObject {
         .show()
     }
 
-    public func cloudDisabled(completion:((Int)->Void)?) {
+    open func cloudDisabled(_ completion:((Int)->Void)?) {
         let title: String = "You're not using iCloud"
         var message: String = ""
         let option1: String = "Keep using iCloud"
         var option2: String = ""
         var option3: String = ""
-        if (UIDevice.currentDevice().userInterfaceIdiom == UIUserInterfaceIdiom.Phone) {
+        if (UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.phone) {
             message = "What would you like to do with documents currently on this phone?"
             option2 = "Keep on My iPhone"
             option3 = "Delete from My iPhone"
@@ -53,7 +53,7 @@ public class CDALAlerts: NSObject {
         
     }
     
-    public func cloudSignout(completion:(() -> Void)?) {
+    open func cloudSignout(_ completion:(() -> Void)?) {
         let title = "iCloud Sign-Out"
         let message = "You have signed out of the iCloud account previously used to store documents. Sign back in to access those documents"
         let option = "OK"
@@ -63,7 +63,7 @@ public class CDALAlerts: NSObject {
         popup.show()
     }
     
-    public func cloudMerge(completion:((Int)->Void)?) {
+    open func cloudMerge(_ completion:((Int)->Void)?) {
         let title = "iCloud file exists"
         let message = "Do you want to merge the data on this device with the existing iCloud data?"
         let option1 = "Yes"

@@ -14,7 +14,7 @@ public struct CDALNotificationType {
     static let UnhandledException = "CDALUnhandledException"
 }
 
-public class CDALManager: NSObject {
+open class CDALManager: NSObject {
 
     let configuration:CDALConfigurationProtocol
     let alerts = CDALAlerts()
@@ -31,27 +31,27 @@ public class CDALManager: NSObject {
     }
     
     //MARK: Property Setters
-    public func setLocalBackend(backend:CDALBackendProtocol) {
+    open func setLocalBackend(_ backend:CDALBackendProtocol) {
         local = backend
     }
     
-    public func setCloudBackend(backend:CDALCloudEnabledBackendProtocol) {
+    open func setCloudBackend(_ backend:CDALCloudEnabledBackendProtocol) {
         cloud = backend
     }
     
     //MARK: Property Getters
-    public func backend() -> CDALBackendProtocol {
+    open func backend() -> CDALBackendProtocol {
         if configuration.isCloudEnabled() {
             return cloud!
         }
         return local!
     }
-    public func mainContext() -> NSManagedObjectContext {
+    open func mainContext() -> NSManagedObjectContext {
         return context
     }
     
     //MARK: Initialization Sequence
-    public func setup(completion:(() -> Void)?) {
+    open func setup(_ completion:(() -> Void)?) {
         if let available = cloud?.isAvailable() {
             configuration.setCloudAvailable(available)
         }
@@ -73,7 +73,7 @@ public class CDALManager: NSObject {
     /**
      * Prompt the user to choose a preferred backend and initialize it
      */
-    func choosePreferredBackend(completion:(() -> Void)?) {
+    func choosePreferredBackend(_ completion:(() -> Void)?) {
         alerts.cloudPreference() { choice in
             if choice == 1 {
                 self.configuration.shouldUseCloud(false)
@@ -88,7 +88,7 @@ public class CDALManager: NSObject {
     /**
      * Initialize a backend based on the users saved preference
      */
-    func initializePreferredBackend(completion:(() -> Void)?) {
+    func initializePreferredBackend(_ completion:(() -> Void)?) {
         if configuration.shouldUseCloud() {
             //user chose to use cloud
             if configuration.isCloudAvailable() {
@@ -129,12 +129,12 @@ public class CDALManager: NSObject {
         }
     }
     
-    func initializeLocalBackend(completion:(() -> Void)?) {
+    func initializeLocalBackend(_ completion:(() -> Void)?) {
         configuration.setCloudEnabled(false)
         self.createStack(completion)
     }
     
-    func initializeCloudBackend(completion:(() -> Void)?) {
+    func initializeCloudBackend(_ completion:(() -> Void)?) {
         configuration.setCloudEnabled(true)
         cloud?.authenticate() { changed in
             if changed {
@@ -147,7 +147,7 @@ public class CDALManager: NSObject {
         }
     }
     
-    private func migrateDataIfRequired(completion:() -> Void) {
+    fileprivate func migrateDataIfRequired(_ completion:@escaping () -> Void) {
         if (configuration.isCloudEnabled()) {
             //using cloud
             if (localStoreExists()) {
@@ -195,8 +195,8 @@ public class CDALManager: NSObject {
         }
     }
     
-    func createStack(completion:(() -> Void)?) {
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+    func createStack(_ completion:(() -> Void)?) {
+        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.default).async(execute: {
             
             self.migrateDataIfRequired() { Void in
                 self.open(completion)
@@ -207,7 +207,7 @@ public class CDALManager: NSObject {
     }
     
     //MARK: - OPERATIONS
-    func open(completion:(() -> Void)?) {
+    func open(_ completion:(() -> Void)?) {
         if configuration.isStoreOpen() {
             completion?()
             return
@@ -225,7 +225,7 @@ public class CDALManager: NSObject {
         }
     }
     
-    public func migrate(source:CDALBackendProtocol, destination:CDALBackendProtocol, shouldDelete:Bool, shouldBackup:Bool) -> Bool {
+    open func migrate(_ source:CDALBackendProtocol, destination:CDALBackendProtocol, shouldDelete:Bool, shouldBackup:Bool) -> Bool {
         if (shouldBackup && source.storeExists()) {
             saveBackup(source)
         }
@@ -263,36 +263,36 @@ public class CDALManager: NSObject {
     
     // MARK: - MODEL
     lazy var model: NSManagedObjectModel = {
-        let modelURL = NSBundle.mainBundle().URLForResource(self.configuration.getModelName(), withExtension: "momd")!
-        return NSManagedObjectModel(contentsOfURL: modelURL)!
+        let modelURL = Bundle.main.url(forResource: self.configuration.getModelName(), withExtension: "momd")!
+        return NSManagedObjectModel(contentsOf: modelURL)!
     }()
     // MARK: - CONTEXT
     lazy var parentContext: NSManagedObjectContext = {
-        let moc = NSManagedObjectContext(concurrencyType:.PrivateQueueConcurrencyType)
+        let moc = NSManagedObjectContext(concurrencyType:.privateQueueConcurrencyType)
         moc.persistentStoreCoordinator = self.coordinator
         moc.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         return moc
     }()
     lazy var context: NSManagedObjectContext = {
-        let moc = NSManagedObjectContext(concurrencyType:.MainQueueConcurrencyType)
-        moc.parentContext = self.parentContext
+        let moc = NSManagedObjectContext(concurrencyType:.mainQueueConcurrencyType)
+        moc.parent = self.parentContext
         moc.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         return moc
     }()
     lazy var importContext: NSManagedObjectContext = {
-        let moc = NSManagedObjectContext(concurrencyType:.PrivateQueueConcurrencyType)
-        moc.parentContext = self.context
+        let moc = NSManagedObjectContext(concurrencyType:.privateQueueConcurrencyType)
+        moc.parent = self.context
         moc.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         return moc
     }()
     lazy var sourceContext: NSManagedObjectContext = {
-        let moc = NSManagedObjectContext(concurrencyType:.PrivateQueueConcurrencyType)
-        moc.parentContext = self.context
+        let moc = NSManagedObjectContext(concurrencyType:.privateQueueConcurrencyType)
+        moc.parent = self.context
         moc.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         return moc
     }()
     lazy var seedContext: NSManagedObjectContext = {
-        let moc = NSManagedObjectContext(concurrencyType:.PrivateQueueConcurrencyType)
+        let moc = NSManagedObjectContext(concurrencyType:.privateQueueConcurrencyType)
         moc.persistentStoreCoordinator = self.seedCoordinator
         moc.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         return moc
@@ -310,14 +310,14 @@ public class CDALManager: NSObject {
     }()
     
     //MARK: - HELPERS
-    private func localStoreExists() -> Bool {
+    fileprivate func localStoreExists() -> Bool {
         if let exists = local?.storeExists() {
             return exists
         }
         return false
     }
     
-    private func cloudStoreExists() -> Bool {
+    fileprivate func cloudStoreExists() -> Bool {
         if let exists = cloud?.storeExists() {
             return exists
         }
@@ -328,60 +328,60 @@ public class CDALManager: NSObject {
      * Creates a backup of the specified backend
      * @return Returns YES of file was migrated or NO if not.
      */
-    private func saveBackup(backend:CDALBackendProtocol) -> Bool {
+    fileprivate func saveBackup(_ backend:CDALBackendProtocol) -> Bool {
         return backend.saveBackup(createCoordinator())
     }
     
-    private func createCoordinator() -> NSPersistentStoreCoordinator {
+    fileprivate func createCoordinator() -> NSPersistentStoreCoordinator {
         let coordinator: NSPersistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
         return coordinator
     }
     
-    private func registerForStoreChanges(storeCoordinator: NSPersistentStoreCoordinator) {
-        let nc = NSNotificationCenter.defaultCenter()
-        nc.addObserver(self, selector: #selector(storesWillChange(_:)), name: NSPersistentStoreCoordinatorStoresWillChangeNotification, object: storeCoordinator)
-        nc.addObserver(self, selector: #selector(storesDidChange(_:)), name: NSPersistentStoreCoordinatorStoresDidChangeNotification, object: storeCoordinator)
-        nc.addObserver(self, selector: #selector(storesDidImport(_:)), name: NSPersistentStoreDidImportUbiquitousContentChangesNotification, object: storeCoordinator)
+    fileprivate func registerForStoreChanges(_ storeCoordinator: NSPersistentStoreCoordinator) {
+        let nc = NotificationCenter.default
+        nc.addObserver(self, selector: #selector(storesWillChange(_:)), name: NSNotification.Name.NSPersistentStoreCoordinatorStoresWillChange, object: storeCoordinator)
+        nc.addObserver(self, selector: #selector(storesDidChange(_:)), name: NSNotification.Name.NSPersistentStoreCoordinatorStoresDidChange, object: storeCoordinator)
+        nc.addObserver(self, selector: #selector(storesDidImport(_:)), name: NSNotification.Name.NSPersistentStoreDidImportUbiquitousContentChanges, object: storeCoordinator)
     }
     
-    private func deregisterForStoreChanges() {
-        let nc = NSNotificationCenter.defaultCenter()
-        nc.removeObserver(self,  name: NSPersistentStoreCoordinatorStoresWillChangeNotification, object:nil)
-        nc.removeObserver(self, name: NSPersistentStoreCoordinatorStoresDidChangeNotification, object:nil)
-        nc.removeObserver(self, name: NSPersistentStoreDidImportUbiquitousContentChangesNotification, object:nil)
+    fileprivate func deregisterForStoreChanges() {
+        let nc = NotificationCenter.default
+        nc.removeObserver(self,  name: NSNotification.Name.NSPersistentStoreCoordinatorStoresWillChange, object:nil)
+        nc.removeObserver(self, name: NSNotification.Name.NSPersistentStoreCoordinatorStoresDidChange, object:nil)
+        nc.removeObserver(self, name: NSNotification.Name.NSPersistentStoreDidImportUbiquitousContentChanges, object:nil)
         
     }
     
-    private func postStoreOpenedNotification() {
-        NSNotificationCenter.defaultCenter().postNotificationName(CDALNotificationType.StoreOpened,
+    fileprivate func postStoreOpenedNotification() {
+        NotificationCenter.default.post(name: Notification.Name(rawValue: CDALNotificationType.StoreOpened),
                 object:self)
     }
     
-    private func postStoreChangedNotification() {
-        NSNotificationCenter.defaultCenter().postNotificationName(CDALNotificationType.StoreChanged,
+    fileprivate func postStoreChangedNotification() {
+        NotificationCenter.default.post(name: Notification.Name(rawValue: CDALNotificationType.StoreChanged),
                 object:self)
     }
     
-    func storesWillChange(n:NSNotification) {
-        self.sourceContext.performBlockAndWait {
+    func storesWillChange(_ n:Notification) {
+        self.sourceContext.performAndWait {
             do {
                 try self.sourceContext.save()
                 self.sourceContext.reset()
             } catch {print("ERROR saving sourceContext \(self.sourceContext.description) - \(error)")}
         }
-        self.importContext.performBlockAndWait {
+        self.importContext.performAndWait {
             do {
                 try self.importContext.save()
                 self.importContext.reset()
             } catch {print("ERROR saving importContext \(self.importContext.description) - \(error)")}
         }
-        self.context.performBlockAndWait {
+        self.context.performAndWait {
             do {
                 try self.context.save()
                 self.context.reset()
             } catch {print("ERROR saving context \(self.context.description) - \(error)")}
         }
-        self.parentContext.performBlockAndWait {
+        self.parentContext.performAndWait {
             do {
                 try self.parentContext.save()
                 self.parentContext.reset()
@@ -389,12 +389,12 @@ public class CDALManager: NSObject {
         }
     }
     
-    func storesDidChange(n:NSNotification) {
+    func storesDidChange(_ n:Notification) {
         postStoreChangedNotification()
     }
     
-    func storesDidImport(n:NSNotification) {
-        self.context.mergeChangesFromContextDidSaveNotification(n)
+    func storesDidImport(_ n:Notification) {
+        self.context.mergeChanges(fromContextDidSave: n)
         self.postStoreChangedNotification()
     }
 }
