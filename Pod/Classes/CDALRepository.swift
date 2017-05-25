@@ -22,7 +22,7 @@ open class CDALRepository<EntityType: NSManagedObject>: NSObject {
     /**
      * create a new record and set some attributes. This will not be saved
      */
-    open func create(_ attributes:[String:AnyObject]) -> EntityType {
+    open func create(_ attributes:[String:Any]) -> EntityType {
         let item:EntityType = db.create()
         for (key, value) in attributes {
             (item as NSManagedObject).setValue(value, forKey: key)
