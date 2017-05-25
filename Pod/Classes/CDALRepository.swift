@@ -8,8 +8,8 @@
 import CoreData
 
 open class CDALRepository<EntityType: NSManagedObject>: NSObject {
-    let db:CDALDatabase
-    let items = [EntityType]()
+    open let db:CDALDatabase
+    open let items = [EntityType]()
     public init(db:CDALDatabase) {
         self.db = db
     }
