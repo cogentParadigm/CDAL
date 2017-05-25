@@ -9,7 +9,7 @@ import CoreData
 
 open class CDALDatabase: NSObject {
     
-    let context:NSManagedObjectContext
+    open let context:NSManagedObjectContext
     
     public init(context:NSManagedObjectContext) {
         self.context = context
